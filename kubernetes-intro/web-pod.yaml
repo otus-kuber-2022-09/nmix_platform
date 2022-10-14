@@ -4,7 +4,6 @@ metadata:
   name: web
   labels:
     key: value
-
 spec:
   initContainers:
     - name: init
@@ -13,14 +12,18 @@ spec:
       volumeMounts:
         - name: app
           mountPath: /app
-
   containers:
     - name: main
       image: zoidenberg/otus-2-web:1.0
+      readinessProbe:
+        httpGet:
+          path: /index.html
+          port: 8000
+      livenessProbe:
+        tcpSocket: { port: 8000 }
       volumeMounts:
         - name: app
           mountPath: /app
-
   volumes:
     - name: app
       emptyDir: {}
