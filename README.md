@@ -64,12 +64,21 @@
 
 ### Как запустить проект
 
+Без секретов
+
+```bash
+kubectl apply -f kubernetes-volumes/minio-statefulset.yaml
+kubectl apply -f kubernetes-volumes/minio-headless-service.yaml
+```
+
+С секретами
+
 ```bash
 kubectl create secret generic minio \
   --from-literal=MINIO_ACCESS_KEY=minio \
   --from-literal=MINIO_SECRET_KEY=minio123
 
-kubectl apply -f kubernetes-volumes/minio-statefulset.yaml
+kubectl apply -f kubernetes-volumes/minio-statefulset-secrets.yaml
 kubectl apply -f kubernetes-volumes/minio-headless-service.yaml
 ```
 
