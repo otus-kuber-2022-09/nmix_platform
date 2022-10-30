@@ -6,7 +6,7 @@ ingress:
     cert-manager.io/cluster-issuer: "letsencrypt-production"
     cert-manager.io/acme-challenge-type: http01
   hosts:
-    - name: chartmuseum.178.154.247.0.nip.io
+    - name: chartmuseum.otus.onrails.ru
       path: /
       tls: true
-      tlsSecret: chartmuseum.178.154.247.0.nip.io
+      tlsSecret: chartmuseum.otus.onrails.ru
