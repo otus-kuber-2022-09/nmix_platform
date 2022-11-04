@@ -1,6 +1,7 @@
 resources:
   - ../../base
-namePrefix: dev-
+# --- required original name
+# namePrefix: dev-
 namespace: hipster-shop
 commonLabels:
   env: dev
