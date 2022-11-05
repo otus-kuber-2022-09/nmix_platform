@@ -90,3 +90,77 @@ kubectl exec mc -- mc alias set minio http://minio-0.minio:9000 minio minio123
 kubectl exec mc -- mc cp /etc/resolv.conf minio:/1/resolv.conf
 kubectl exec mc -- mc ls minio:/1
 ```
+
+## 6. kubernetes-security
+
+### Выполнено
+
+ созданы сервисные аккаунты с доступом и без доступа к кластеру
+- создано пространство имен, все сервисные аккаунты которого имеют доступ ко всем подам кластера
+- создано пространство имен с ролями администратор и "просмотрщик" только для этого пространства имен.
+
+### Как запустить проект:
+ - применить все манифесты из директории kubernetes-security
+
+### Как проверить работоспособность:
+ - тесты должны пройти
+
+## 7. kubernetes-templating
+
+### Выполнено
+
+- установлен nginx-ingress через helm
+ - установлен cert-manager через helm
+ - установлены chartmuseum, harbor через helm
+ - установлен hipster-shop через helm
+ - выделен сервис frontend и установлен как отдельная схема helm
+ - выделены сервисы сервисы paymentservice и shippingservice и установлены через kubecfg
+ - выделен сервис currencyservice и установлен через kustomize
+
+### Как запустить проект:
+
+```bash
+# --- nginx-ingress
+kubectl create ns nginx-ingress
+helm repo add stable https://charts.helm.sh/stable
+helm upgrade --install nginx-ingress nginx-stable/nginx-ingress --wait --namespace=nginx-ingress --version=0.15.1
+
+# --- cert-manager
+helm repo add jetstack https://charts.jetstack.io
+kubectl apply --validate=false -f https://github.com/jetstack/cert-manager/releases/download/v0.16.1/cert-manager.crds.yaml
+helm upgrade --install cert-manager kubernetes-templating/jetstack/cert-manager \
+  --wait \
+  --namespace=cert-manager \
+  --version=0.16.1
+
+# --- chartmuseum
+kubectl create ns charmuseum
+helm repo add stable https://charts.helm.sh/stable
+helm upgrade --install chartmuseum stable/chartmuseum --wait \
+  --namespace=chartmuseum \
+  --version=2.13.2 \
+  -f kubernetes-templating/chartmuseum/values.yaml
+
+# --- harbor
+kubectl create ns harbor
+helm repo add harbor https://helm.goharbor.io
+helm upgrade --install harbor harbor/harbor --wait \
+  --namespace=harbor \
+  --version=1.1.2 \
+  -f harbor/values.yaml
+
+# --- frontend
+kubecfg update services.jsonnet --namespace hipster-shop
+
+# --- kustomize
+kubectl apply -k kubernetes-templating/kustomize/overrides/hipster-shop
+kubectl apply -k kubernetes-templating/kustomize/overrides/hipster-shop-prod
+```
+
+### Как проверить работоспособность:
+
+> Ссылки доступны после запуска кластера по затросу
+
+ - перейти по ссылке https://chartmuseum.otus.onrails.ru
+ - перейти по ссылке https://harbor.otus.onrails.ru
+ - перейти по ссылке https://shop.otus.onrails.ru
