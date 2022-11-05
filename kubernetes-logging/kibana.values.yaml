@@ -1,0 +1,34 @@
+image: "kibana"
+
+nodeSelector:
+  yandex.cloud/node-group-id: catioq49hhgt3rlkg7qe
+
+tolerations:
+  - key: node-role
+    operator: Equal
+    value: infra
+    effect: NoSchedule
+
+ingress:
+  enabled: true
+  # annotations:
+  #   kubernetes.io/ingress.class: nginx
+  #   kubernetes.io/tls-acme: "true"
+  #   cert-manager.io/cluster-issuer: "letsencrypt-production"
+  #   cert-manager.io/acme-challenge-type: http01
+  hosts:
+    - host: kibana.otus.onrails.ru
+      paths:
+        - path: /
+  tls: []
+    # - secretName: kibana.otus.onrails.ru
+    #   hosts:
+    #     - kibana.otus.onrails.ru
+
+resources:
+  requests:
+    cpu: "500m"
+    memory: "2Gi"
+  limits:
+    cpu: "500m"
+    memory: "2Gi"
