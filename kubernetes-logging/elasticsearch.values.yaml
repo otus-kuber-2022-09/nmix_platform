@@ -1,0 +1,18 @@
+image: "elasticsearch"
+
+nodeSelector:
+  yandex.cloud/node-group-id: catioq49hhgt3rlkg7qe
+
+tolerations:
+  - key: node-role
+    operator: Equal
+    value: infra
+    effect: NoSchedule
+
+resources:
+  requests:
+    cpu: "500m"
+    memory: "2Gi"
+  limits:
+    cpu: "500m"
+    memory: "2Gi"

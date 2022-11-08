@@ -117,7 +117,7 @@ kubectl exec mc -- mc ls minio:/1
  - выделены сервисы сервисы paymentservice и shippingservice и установлены через kubecfg
  - выделен сервис currencyservice и установлен через kustomize
 
-### Как запустить проект:
+### Как запустить проект
 
 ```bash
 # --- nginx-ingress
@@ -157,10 +157,74 @@ kubectl apply -k kubernetes-templating/kustomize/overrides/hipster-shop
 kubectl apply -k kubernetes-templating/kustomize/overrides/hipster-shop-prod
 ```
 
-### Как проверить работоспособность:
+### Как проверить работоспособность
 
-> Ссылки доступны после запуска кластера по затросу
+> Ссылки доступны после запуска кластера по запросу
 
  - перейти по ссылке https://chartmuseum.otus.onrails.ru
  - перейти по ссылке https://harbor.otus.onrails.ru
  - перейти по ссылке https://shop.otus.onrails.ru
+
+
+## 8. kubernetes-logging
+
+### Выполнено
+
+* запущен кластер в Яндекс.Облако
+* установлен nginx-ingress
+* установлены elastic, kibana и fluent-bit
+* в kibana построена визуализация логов nginx-ingress
+* установлен prometheus
+* метрики elasticsearch прокинуты в prometheus через elasticsearch-exporter
+* установлены loki и promtail
+* логи nginx-ingress прокинуты в loki, доступны через grafana
+* метрики nginx-ingress прокинуты в prometheus через serviceMonitor
+* в grafana построены панели для nginx-ingress
+
+
+### Как запустить проект
+
+```bash
+# --- https://github.com/helm/charts/tree/master/stable/nginx-ingress
+helm repo add nginx-stable https://helm.nginx.com/stable 
+helm upgrade --install nginx-ingress stable/nginx-ingress --wait \
+  --namespace=nginx-ingress \
+  --version=1.41.3 \
+  -f nginx-ingress.values.yaml
+
+kubectl create ns observability
+helm upgrade --install elasticsearch elastic/elasticsearch --namespace observability
+helm upgrade --install kibana elastic/kibana --namespace observability
+helm upgrade --install fluent-bit stable/fluent-bit --namespace observability
+
+# quick start for prometheus-operator
+# https://prometheus-operator.dev/docs/prologue/quick-start/
+
+# elasticsearch-exporter source https://github.com/prometheus-community/helm-charts
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+
+helm upgrade --install elasticsearch-exporter prometheus-community/prometheus-elasticsearch-exporter \
+  --set es.uri=http://elasticsearch-master:9200 \
+  --set serviceMonitor.enabled=true \
+  --namespace=observability
+
+# --- https://github.com/grafana/loki/blob/v1.3.0/docs/installation/helm.md
+helm repo add loki https://grafana.github.io/loki/charts
+helm repo update
+helm upgrade --install loki loki/loki -n observability
+helm upgrade --install promtail loki/promtail --set "loki.serviceName=loki" -n observability
+
+# --- https://github.com/grafana/loki/blob/v1.3.0/docs/clients/promtail/installation.md
+helm upgrade --install promtail loki/promtail --set "loki.serviceName=loki" -n observability
+
+# --- https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo update
+helm install kube-prometheus-stack prometheus-community/kube-prometheus-stack \
+  -n observability -f prometheus-operator.values.yaml
+```
+
+### Как проверить работоспособность
+
+- прокидываем порты kibana, импортируем визуализацию
+- прокидываем порты grafana, наблюдаем метрики и логи
