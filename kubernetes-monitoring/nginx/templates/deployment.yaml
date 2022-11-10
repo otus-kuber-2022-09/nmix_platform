@@ -50,6 +50,12 @@ spec:
           volumeMounts:
             - name: config
               mountPath: /etc/nginx/conf.d
+        - name: exporter
+          image: nginx/nginx-prometheus-exporter:0.10.0
+          args: ["-nginx.scrape-uri=http://127.0.0.1/basic_status"]
+          ports:
+            - containerPort: 9113
+            
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
