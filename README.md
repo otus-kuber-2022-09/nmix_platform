@@ -166,7 +166,30 @@ kubectl apply -k kubernetes-templating/kustomize/overrides/hipster-shop-prod
  - перейти по ссылке https://shop.otus.onrails.ru
 
 
-## 8. kubernetes-logging
+## 8. kubernetes-monitoring
+
+### Выполнено
+
+* создана helm схема для nginx
+* добавлен nginx-экспортер в качестве sidecar-контейнера
+* добавлен ServiceMonitor
+
+### Как запустить проект
+
+```bash
+# --- запускаем приложение
+helm upgrade --install test kubernetes-monitoring/nginx
+# --- запускаем прометеус
+helm install test prometheus-community/kube-prometheus-stack
+```
+
+### Как проверить работоспособность
+
+Заходим в веб-интерфейс прометеуса в раздел Targets и наблюдаем
+`serviceMonitor/default/test-nginx/0 (3/3 up)`
+
+
+## 9. kubernetes-logging
 
 ### Выполнено
 
