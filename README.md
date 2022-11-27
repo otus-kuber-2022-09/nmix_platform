@@ -251,3 +251,98 @@ helm install kube-prometheus-stack prometheus-community/kube-prometheus-stack \
 
 - прокидываем порты kibana, импортируем визуализацию
 - прокидываем порты grafana, наблюдаем метрики и логи
+
+## 14. kubernetes-gitops
+
+### Выполнено
+
+* запущен кластер в Яндекс.Облако
+* установлен flux
+* настроено автоматическое развертывание helm-схемы frontend
+* установлены istio и flagger
+* проведено canary-развертывание для frontend
+
+### Как запустить проект
+
+Исходники микросервисов и чартов https://gitlab.com/otus40/microservices-demo
+Исходники инфраструктуры https://gitlab.com/otus40/flux2
+
+```bash
+# --- install flux cli
+curl -s https://fluxcd.io/install.sh | sudo bash
+. <(flux completion bash)
+
+export GITLAB_TOKEN=secret
+flux bootstrap gitlab \
+   --components-extra=image-reflector-controller,image-automation-controller \
+   --owner=otus40 \
+   --repository=flux2 \
+   --branch=master \
+   --path=clusters/ya \
+   --token-auth
+```
+
+Создаем директорию для своего кластера, складируем туда ресурсы. Ждем авто-развертывания.
+
+Заливаем новую версию образа для frontend и контролируем перезапуск пода с новым образом и коммит в инфраструктурный репозиторий.
+
+```bash
+# --- устанавливаем istio - https://istio.io/latest/docs/setup/getting-started/
+curl -L https://istio.io/downloadIstio | sh -
+sudo cp istio-1.16.0/bin/istioctl /usr/local/bin/
+istioctl  install --set profile=demo -y
+# --- yстанавливаем Flagger
+kubectl apply -f https://raw.githubusercontent.com/weaveworks/flagger/master/artifacts/flagger/crd.yaml
+helm upgrade --install flagger flagger/flagger \
+  --namespace=istio-system \
+  --set crd.create=false \
+  --set meshProvider=istio \
+  --set metricsServer=http://prometheus:9090
+```
+
+Заливаем новую версию образа для frontend и контролируем канареечное развертывание frontend.
+
+### Как проверить работоспособность
+
+```bash
+kubectl get canaries -n microservices-demo
+NAME       STATUS      WEIGHT   LASTTRANSITIONTIME
+frontend   Succeeded   0        2022-11-25T12:00:21Z
+
+kubectl describe canaries.flagger.app -n microservices-demo frontend
+# ...
+Status:
+  Canary Weight:  0
+  Conditions:
+    Last Transition Time:  2022-11-25T12:00:21Z 
+    Last Update Time:      2022-11-25T12:00:21Z 
+    Message:               Canary analysis completed successfully, promotion finished.
+    Reason:                Succeeded
+    Status:                True
+    Type:                  Promoted
+  Failed Checks:           0
+  Iterations:              0
+  Last Applied Spec:       c5d99f99d
+  Last Promoted Spec:      c5d99f99d
+  Last Transition Time:    2022-11-25T12:00:21Z 
+  Phase:                   Succeeded
+  Tracked Configs:
+Events:
+  Type     Reason  Age                    From     Message
+  ----     ------  ----                   ----     -------
+  Warning  Synced  33m                    flagger  frontend-primary.microservices-demo not ready: waiting for rollout to finish: observed deployment generation less than desired generation
+  Normal   Synced  32m (x2 over 33m)      flagger  all the metrics providers are available!
+  Normal   Synced  32m                    flagger  Initialization done! frontend.microservices-demo
+  Normal   Synced  16m                    flagger  New revision detected! Scaling up frontend.microservices-demo
+  Normal   Synced  15m                    flagger  Starting canary analysis for frontend.microservices-demo
+  Normal   Synced  15m                    flagger  Advance frontend.microservices-demo canary iteration 1/10
+  Normal   Synced  14m                    flagger  Advance frontend.microservices-demo canary iteration 2/10
+  Normal   Synced  13m                    flagger  Advance frontend.microservices-demo canary iteration 3/10
+  Normal   Synced  12m                    flagger  Advance frontend.microservices-demo canary iteration 4/10
+  Normal   Synced  11m                    flagger  Advance frontend.microservices-demo canary iteration 5/10
+  Normal   Synced  10m                    flagger  Advance frontend.microservices-demo canary iteration 6/10
+  Normal   Synced  9m13s                  flagger  Advance frontend.microservices-demo canary iteration 7/10
+  Normal   Synced  2m13s (x7 over 8m13s)  flagger  (combined from similar events): Promotion completed! Scaling down frontend.microservices-demo
+
+```
+
