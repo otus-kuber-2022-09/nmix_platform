@@ -346,3 +346,31 @@ Events:
 
 ```
 
+## 18. kubernetes-vault
+
+### Выполнено
+
+* установлены consul и vault
+* vault интегрирован с kubernetes
+* проведено чтение и запись секретов в vault через service account
+* с использованием vault-agent прописаны секреты в под nginx-а
+* выпущены и отозваны сертификаты pki
+
+### Как запустить и проверить
+
+См. PR kubernetes-vault
+
+## 23. kubernetes-kubeadm-kubespray
+
+### Выполнено
+
+* запуск и подготовка виртуальных машин (ВМ) в Яндекс.Облаке
+* установка на ВМ kubeadm, kubelet и kubectl
+* инициализация kubernetes-кластера версии 1.21
+* обновление версии кластера до 1.22
+* установка kubernetes-кластера с помощью kubespray
+
+### Как запустить и проверить
+
+Cм. PR kubernetes-kubeadm-kubespray
+
