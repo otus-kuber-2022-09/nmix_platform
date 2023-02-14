@@ -360,7 +360,7 @@ Events:
 
 См. PR kubernetes-vault
 
-## 23. kubernetes-kubeadm-kubespray
+## 22. kubernetes-kubeadm-kubespray
 
 ### Выполнено
 
@@ -373,4 +373,21 @@ Events:
 ### Как запустить и проверить
 
 Cм. PR kubernetes-kubeadm-kubespray
+
+## 23. kubernetes-storage
+
+### Выполнено
+
+* ознакомление с документацией и примерами CSI Hostpath Driver
+* разработаны манифесты StorageClass, PersistentVolumeClaim, Pod
+
+
+### Как запустить и проверить
+
+```bash
+kubectl apply -f kuberntes-storage/hw
+kubectl get storageclass
+kubectl get pvc
+```
+
 
