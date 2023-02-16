@@ -27,3 +27,14 @@ spec:
               properties:
                 name:
                   type: string
+            spec:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+              properties:
+                serverNode:
+                  type: string
+                clientNode:
+                  type: string
+            status:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
